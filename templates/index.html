@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск по базе</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .search-container {
+            max-width: 800px;
+            margin: 50px auto;
+        }
+        .results-table {
+            margin-top: 20px;
+        }
+        .stats {
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container search-container">
+        <h1 class="text-center mb-4">Корректирующий поисковик</h1>
+
+        <div class="input-group mb-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="Введите ваш запрос...">
+            <button id="searchButton" class="btn btn-primary">Поиск</button>
+        </div>
+
+        <div id="stats" class="stats"></div>
+
+        <div class="results-table">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Блюдо</th>
+                        <th>Калории</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTable">
+                    <!-- Результаты будут здесь -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('searchButton').addEventListener('click', performSearch);
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `query=${encodeURIComponent(query)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('resultsTable');
+                tableBody.innerHTML = '';
+
+                if (data.error) {
+                    tableBody.innerHTML = `<tr><td colspan="2">${data.error}</td></tr>`;
+                    return;
+                }
+
+                data.results.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.id}</td>
+                        <td>${item.text}</td>
+                        <td>${item.cal}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                document.getElementById('stats').innerHTML = `
+                    Найдено записей: ${data.count}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

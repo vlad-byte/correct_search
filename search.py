@@ -6,7 +6,7 @@ from init import Speller
 spell = Speller()
 start = time.time()
 p = spell(input("Введите ваш запрос: ")).lower().split()
-with open("Database.csv", encoding='ANSI') as r_file:
+with open("Database_updated.csv", encoding='ANSI') as r_file:
     file_reader = csv.reader(r_file, delimiter=";")
     count = 0
     for row in file_reader:
